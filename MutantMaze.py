@@ -133,10 +133,17 @@ class MutantMaze:
         """Retorna la posición actual del agente."""
         return self.agent_pos
 
+    #Lo puse pero quiza no se use al ya tener para reconocer vecinos
     def get_item_in_cell(self, pos: Tuple[int, int]) -> int:
         """Retorna el contenido de una celda específica."""
         i, j = pos
         return self.grid[i, j]
+    
+
+    #Copie el codigo en mutate_walls para esto, puede que lo cambie en mutate walls para usar esto
+    def get_walls(self) -> List[Tuple[int, int]]:
+        """Retorna una lista de todas las posiciones de paredes."""
+        return [(i, j) for i in range(self.size) for j in range(self.size) if self.grid[i, j] == 1]
     
 mm = MutantMaze(size=10, wall_prob=0.3, mutation_prob=0.1, num_exits=3)
 mm.print_maze()
