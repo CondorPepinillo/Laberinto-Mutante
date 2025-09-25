@@ -4,7 +4,7 @@ from typing import List, Tuple
 
 
 class MutantMaze:
-    def __init__(self, size, wall_prob, mutation_prob, num_exits):
+    def __init__(self, size, wall_prob, mutation_prob, num_exits): #example: size=10, wall_prob=0.3, mutation_prob=0.1, num_exits=3
         """
         Inicializa el laberinto mutante.
         
@@ -23,7 +23,7 @@ class MutantMaze:
         self._generate_maze()
         
         # Posición inicial fija (centro del laberinto)
-        self.start_pos = (size // 2, size // 2)
+        self.agent_pos = (size // 2, size // 2)
         
         # Generar salidas
         self._generate_exits()
@@ -59,9 +59,11 @@ class MutantMaze:
     
     def mutate_walls(self):
         """Mueve algunas paredes según la probabilidad de mutación."""
+
+        # Obtener todas las posiciones de paredes y vacías, 1 son paredes, 0 son vacías
         walls = [(i, j) for i in range(self.size) for j in range(self.size) if self.grid[i, j] == 1]
         empty = [(i, j) for i in range(self.size) for j in range(self.size) 
-                 if self.grid[i, j] == 0 and (i, j) != self.start_pos and (i, j) not in self.exits]
+                 if self.grid[i, j] == 0 and (i, j) != self.agent_pos and (i, j) not in self.exits]
         
         for wall_pos in walls:
             if random.random() < self.mutation_prob and empty:
@@ -97,16 +99,17 @@ class MutantMaze:
         """Verifica si una posición es la salida válida."""
         return pos == self.valid_exit
     
+    #distancia que se recorrería entre dos puntos moviéndose en una cuadrícula, no en línea recta como la distancia euclidiana
     def manhattan_distance(self, pos1: Tuple[int, int], pos2: Tuple[int, int]) -> int:
         """Calcula la distancia Manhattan entre dos posiciones."""
         return abs(pos1[0] - pos2[0]) + abs(pos1[1] - pos2[1])
     
-    def print_maze(self, agent_pos: Tuple[int, int] = None):
+    def print_maze(self):
         """Imprime el laberinto con opción de mostrar la posición del agente."""
         for i in range(self.size):
             row = []
             for j in range(self.size):
-                if (i, j) == agent_pos:
+                if (i, j) == self.agent_pos:
                     row.append('A')
                 elif (i, j) == self.valid_exit:
                     row.append('E')
@@ -118,13 +121,32 @@ class MutantMaze:
                     row.append('.')
             print(' '.join(row))
         print()
-        
+    
+    def move_agent(self, new_pos: Tuple[int, int]) -> bool:
+        """Mueve al agente a una nueva posición si es válida. Retorna True si se mueve a la salida válida."""
+        if self.is_valid_position(new_pos):
+            self.agent_pos = new_pos
+            return self.is_valid_exit(new_pos)
+        return False
 
+    def get_agent_position(self) -> Tuple[int, int]:
+        """Retorna la posición actual del agente."""
+        return self.agent_pos
+
+    def get_item_in_cell(self, pos: Tuple[int, int]) -> int:
+        """Retorna el contenido de una celda específica."""
+        i, j = pos
+        return self.grid[i, j]
+    
 mm = MutantMaze(size=10, wall_prob=0.3, mutation_prob=0.1, num_exits=3)
-mm.print_maze(agent_pos=mm.start_pos)
+mm.print_maze()
 mm.mutate_walls()
-mm.print_maze(agent_pos=mm.start_pos)
+mm.print_maze()
 mm.mutate_walls()
-mm.print_maze(agent_pos=mm.start_pos)
+mm.print_maze()
 mm.mutate_walls()
-mm.print_maze(agent_pos=mm.start_pos)
+mm.print_maze()
+
+
+print("Posición del agente:", mm.get_agent_position())
+print("Vecinos válidos del agente:", mm.get_neighbors(mm.get_agent_position()))
