@@ -144,16 +144,18 @@ class MutantMaze:
     def get_walls(self) -> List[Tuple[int, int]]:
         """Retorna una lista de todas las posiciones de paredes."""
         return [(i, j) for i in range(self.size) for j in range(self.size) if self.grid[i, j] == 1]
-    
-mm = MutantMaze(size=10, wall_prob=0.3, mutation_prob=0.1, num_exits=3)
-mm.print_maze()
-mm.mutate_walls()
-mm.print_maze()
-mm.mutate_walls()
-mm.print_maze()
-mm.mutate_walls()
-mm.print_maze()
+
+if __name__ == "__main__":
+    # Ejemplo de uso
+    mm = MutantMaze(size=10, wall_prob=0.3, mutation_prob=0.1, num_exits=3)
+    mm.print_maze()
+    mm.mutate_walls()
+    mm.print_maze()
+    mm.mutate_walls()
+    mm.print_maze()
+    mm.mutate_walls()
+    mm.print_maze()
 
 
-print("Posición del agente:", mm.get_agent_position())
-print("Vecinos válidos del agente:", mm.get_neighbors(mm.get_agent_position()))
+    print("Posición del agente:", mm.get_agent_position())
+    print("Vecinos válidos del agente:", mm.get_neighbors(mm.get_agent_position()))
