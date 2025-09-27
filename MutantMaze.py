@@ -138,7 +138,11 @@ class MutantMaze:
         """Retorna el contenido de una celda específica."""
         i, j = pos
         return self.grid[i, j]
-    
+        
+    def get_valid_exit(self) -> Tuple[int, int]:
+        """Retorna la posición de la salida válida."""
+        return self.valid_exit
+
 
     #Copie el codigo en mutate_walls para esto, puede que lo cambie en mutate walls para usar esto
     def get_walls(self) -> List[Tuple[int, int]]:
@@ -147,7 +151,7 @@ class MutantMaze:
 
 if __name__ == "__main__":
     # Ejemplo de uso
-    mm = MutantMaze(size=10, wall_prob=0.3, mutation_prob=0.1, num_exits=3)
+    mm = MutantMaze(size=20, wall_prob=0.3, mutation_prob=0.1, num_exits=3)
     mm.print_maze()
     mm.mutate_walls()
     mm.print_maze()
