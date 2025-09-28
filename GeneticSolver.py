@@ -66,25 +66,109 @@ class GeneticSolver:
         generations = int(k * (self.num_steps * self.maze.size) / self.poblation)
         return max(generations, 20)
 
-    def fitness(self, colissions, distance, find_false_exits, find_exit, steps):
-        max_score = self.maze.size * 100
-        bonus_exit = max_score * (1 + self.maze.mutation_prob) if find_exit else 0
-
-        penalty_colissions = colissions * (2 * self.maze.size) * (1 - self.maze.wall_prob)
-        penalty_false_exits = find_false_exits * (0.5 * self.maze.size)
-        penalty_distance = distance * 5
-        penalty_steps = int((steps / self.num_steps) * (max_score * 0.3))
-
-        fitness = bonus_exit + max_score - (
-            penalty_colissions + penalty_false_exits + penalty_distance + penalty_steps
+    def fitness(self, colissions, final_distance, find_false_exits, find_exit, steps, initial_distance):
+        """
+        Versión corregida - initial_distance para medir PROGRESO REAL
+        """
+        BASE_SCORE = self.maze.size * 100
+        
+        # ✅ BONUS POR ENCONTRAR SALIDA
+        if find_exit:
+            success_bonus = BASE_SCORE * 3
+            efficiency_bonus = (1 - steps / self.num_steps) * BASE_SCORE
+            return int(success_bonus + efficiency_bonus)
+        
+        # 📈 RECOMPENSA POR PROGRESO EN DISTANCIA
+        progress_bonus = 0
+        
+        # ¿Me acerqué a la salida?
+        if final_distance < initial_distance:
+            distance_saved = initial_distance - final_distance
+            progress_ratio = distance_saved / initial_distance  # % de mejora
+            progress_bonus = progress_ratio * BASE_SCORE * 2
+        
+        # 🎯 EFICIENCIA DE MOVIMIENTO
+        movement_efficiency = 0
+        if steps > 0:
+            # Recompensa por menos colisiones
+            collision_ratio = (steps - colissions) / steps
+            movement_efficiency = collision_ratio * BASE_SCORE * 0.5
+        
+        # 🚫 PENALIZACIONES
+        penalties = 0
+        
+        # Penalización por salidas falsas (grave error)
+        penalties += find_false_exits * 50
+        
+        # Penalización por distancia residual
+        penalties += final_distance * 3
+        
+        # Penalización por muchas colisiones
+        penalties += colissions * 8
+        
+        # Cálculo final
+        fitness_value = BASE_SCORE + progress_bonus + movement_efficiency - penalties
+        return max(1, int(fitness_value))
+    
+    def calculate_target_fitness(self):
+        """
+        Calcula el objetivo basado en la función fitness ACTUAL
+        que premia encontrar la salida con BASE_SCORE * 3 + efficiency_bonus
+        """
+        BASE_SCORE = self.maze.size * 100
+        
+        # ✅ Fitness MÍNIMO cuando encuentra salida (peor caso)
+        # - Encuentra salida en el ÚLTIMO paso posible
+        # - Máximo de colisiones y salidas falsas
+        min_success_fitness = BASE_SCORE * 3  # Solo el success_bonus básico
+        min_success_fitness = int(min_success_fitness * 0.85)  # 85% del mínimo teórico
+        
+        # ✅ Fitness ESPERADO cuando encuentra salida (caso promedio)
+        # - Encuentra salida en ~50% de los pasos
+        # - Algunas colisiones y salidas falsas
+        expected_efficiency = 0.5  # 50% de eficiencia en pasos
+        expected_success_fitness = BASE_SCORE * 3 + (1 - expected_efficiency) * BASE_SCORE
+        expected_success_fitness = int(expected_success_fitness * 0.90)  # 90% del esperado
+        
+        # ✅ Fitness MÁXIMO cuando NO encuentra salida (mejor caso sin éxito)
+        # - Mejor progreso posible sin encontrar salida
+        max_progress = 1.0  # 100% de mejora en distancia
+        max_efficiency = 1.0  # 0% colisiones
+        min_distance = 1  # Distancia mínima sin llegar
+        min_false_exits = 0
+        min_colissions = 0
+        optimal_steps = self.num_steps * 0.3  # Usa solo 30% de pasos
+        
+        max_no_exit_fitness = (
+            BASE_SCORE + 
+            (max_progress * BASE_SCORE * 2) + 
+            (max_efficiency * BASE_SCORE * 0.5) -
+            (min_false_exits * 50) -
+            (min_distance * 3) -
+            (min_colissions * 8)
         )
-        return max(1, int(fitness))
+        
+        # ✅ El target debe estar CLARAMENTE por encima del mejor caso sin salida
+        # y por debajo del peor caso con salida
+        target = max(min_success_fitness, int(max_no_exit_fitness * 1.5))
+        
+        # Ajustar por dificultad del laberinto
+        difficulty = (self.maze.wall_prob * 0.4 + 
+                    self.maze.mutation_prob * 0.3 + 
+                    min(self.maze.size / 100, 0.3))
+        
+        # En laberintos difíciles, aceptar fitness más bajo
+        adjusted_target = target * (1 - difficulty * 0.2)
+        
+        return max(int(max_no_exit_fitness * 1.2), int(adjusted_target))
 
     def simulation_maze(self, cromosoma, maze):
         genes = cromosoma.get_genes()
         num_colissions = 0
         find_false_exits = 0
         find_exit = False
+        valid_exit_pos = maze.get_valid_exit()
+        initial_distance = maze.manhattan_distance(maze.get_agent_position(), valid_exit_pos)
 
         for gen in genes:
             cromosoma.add_steps()
@@ -106,11 +190,10 @@ class GeneticSolver:
             maze.mutate_walls()
 
         agent_pos = maze.get_agent_position()
-        valid_exit_pos = maze.get_valid_exit()
         distance_to_exit = maze.manhattan_distance(agent_pos, valid_exit_pos)
 
         cromosoma.set_fitness(self.fitness(num_colissions, distance_to_exit,
-                                           find_false_exits, find_exit, cromosoma.get_steps_used()))
+                                           find_false_exits, find_exit, cromosoma.get_steps_used(), initial_distance))
 
     def crossing_chromosomes(self):
         sorted_cromosomas = sorted(self.cromosomas, key=lambda c: c.get_fitness(), reverse=True)
@@ -145,9 +228,9 @@ class GeneticSolver:
     def solveMaze(self, max_generations=None):
         self.max_generations = max_generations if max_generations is not None else self.estimate_max_generations()
 
-        max_score = self.maze.size * 100
-        fitness_max = max_score * (2 + self.maze.mutation_prob)
-        target_fitness = int(fitness_max * 0.95)
+        # Fitness máximo teórico (encontrar salida sin penalizaciones)
+        target_fitness = self.calculate_target_fitness() - self.calculate_target_fitness() * 0.24
+        print(target_fitness)
 
         best_overall = None
         best_maze_state = None
