@@ -181,7 +181,7 @@ class GeneticSolver:
                 if not maze.is_valid_exit(maze.get_agent_position()):
                     find_false_exits += 1
                 else:
-                    print("Salida encontrada")
+                    #print("Salida encontrada")
                     find_exit = True
                     break
             else:
@@ -229,15 +229,15 @@ class GeneticSolver:
         self.max_generations = max_generations if max_generations is not None else self.estimate_max_generations()
 
         # Fitness máximo teórico (encontrar salida sin penalizaciones)
-        target_fitness = self.calculate_target_fitness() - self.calculate_target_fitness() * 0.24
-        print(target_fitness)
+        target_fitness = self.calculate_target_fitness() - self.calculate_target_fitness() * 0.4
+        #print(target_fitness)
 
         best_overall = None
         best_maze_state = None
         best_fitness = -1
 
         for generation in range(self.max_generations):
-            print(f"\n--- Generación {generation+1} ---")
+            #print(f"\n--- Generación {generation+1} ---")
 
             # Lista para guardar pares (cromosoma, laberinto_simulado)
             chromosome_maze_pairs = []
@@ -257,54 +257,38 @@ class GeneticSolver:
             # Mejor de esta generación
             best_current, current_maze_state = chromosome_maze_pairs[0]
             current_fitness = best_current.get_fitness()
-            print(f"Mejor fitness: {current_fitness}")
+            #print(f"Mejor fitness: {current_fitness}")
 
             # Actualizar mejor global si es necesario
             if current_fitness > best_fitness:
                 best_fitness = current_fitness
                 best_overall = best_current
                 best_maze_state = copy.deepcopy(current_maze_state)  # Guardar copia del laberinto
-                print("¡Nuevo mejor global encontrado!")
+                #print("¡Nuevo mejor global encontrado!")
 
             # Mostrar el laberinto del mejor de esta generación
-            print(f"\nLaberinto recorrido por el mejor cromosoma (Generación {generation+1}):")
-            current_maze_state.print_maze()
-            print(f"Posición final del agente: {current_maze_state.get_agent_position()}")
-            print(f"Salida válida: {current_maze_state.get_valid_exit()}")
+            #print(f"\nLaberinto recorrido por el mejor cromosoma (Generación {generation+1}):")
+            #current_maze_state.print_maze()
+            #print(f"Posición final del agente: {current_maze_state.get_agent_position()}")
+            #print(f"Salida válida: {current_maze_state.get_valid_exit()}")
 
             # Condición de parada si alcanzó fitness objetivo
             if current_fitness >= target_fitness:
-                print("\n✅ Solución encontrada!")
-                print(f"Número de generaciones: {generation+1}")
+                #print("\n✅ Solución encontrada!")
+                #print(f"Número de generaciones: {generation+1}")
                 return best_overall, best_maze_state
 
             # Generar nueva población
             self.crossing_chromosomes()
 
-        print(f"\n⚠️ Mejor salida encontrada en el número máximo de generaciones ({self.max_generations})")
-        if best_maze_state:
-            print("\nLaberinto final del mejor cromosoma global:")
-            best_maze_state.print_maze()
-            print(f"Posición final del agente: {best_maze_state.get_agent_position()}")
-            print(f"Salida válida: {best_maze_state.get_valid_exit()}")
-            print(f"Fitness alcanzado: {best_fitness}")
+        #print(f"\n⚠️ Mejor salida encontrada en el número máximo de generaciones ({self.max_generations})")
+        #if best_maze_state:
+            #print("\nLaberinto final del mejor cromosoma global:")
+            #best_maze_state.print_maze()
+            #print(f"Posición final del agente: {best_maze_state.get_agent_position()}")
+            #print(f"Salida válida: {best_maze_state.get_valid_exit()}")
+            #print(f"Fitness alcanzado: {best_fitness}")
         return best_overall, best_maze_state
-
-# Ejemplo de uso
-if __name__ == "__main__":
-    # Crear laberinto
-    maze = MutantMaze(size=25, wall_prob=0.3, mutation_prob=0.1, num_exits=3)
-    
-    print("Laberinto inicial:")
-    print(f"Salida válida: {maze.valid_exit}")
-    print(f"Posición inicial del agente: {maze.get_agent_position()}")
-    maze.print_maze()
-    
-    # Resolver
-    solver = GeneticSolver(maze)
-    best_cromosoma, best_maze = solver.solveMaze() #Intenta buscar la mejor solucion
-    print(f"Cantidad de pasos: {best_cromosoma.get_steps_used()}")
-
 
     #    def solveMaze(self):
 #        while True:

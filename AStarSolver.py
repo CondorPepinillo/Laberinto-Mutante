@@ -16,14 +16,14 @@ class AStarSolver:
             current_path = self._a_star_search()
             
             if not current_path:
-                print("No se encontró camino válido. Esperando un turno...")
+                #print("No se encontró camino válido. Esperando un turno...")
                 # Las paredes mutan aunque no nos movamos
                 self.maze.mutate_walls()
                 self.steps += 1
                 
                 # Mostramos información
-                print(f"Paso {self.steps}: Esperando (sin movimiento)")
-                self.maze.print_maze()
+                #print(f"Paso {self.steps}: Esperando (sin movimiento)")
+                #self.maze.print_maze()
                 continue  # Volver a intentar en el siguiente turno
                 
             # Movemos al agente al siguiente paso en el camino
@@ -34,7 +34,7 @@ class AStarSolver:
             
             # Verificamos que el movimiento sigue siendo válido (por si mutó)
             if not self.maze.is_valid_position(next_pos):
-                print("¡La mutación bloqueó nuestro camino! Recalculando...")
+                #print("¡La mutación bloqueó nuestro camino! Recalculando...")
                 continue
                 
             # Movemos al agente
@@ -42,19 +42,19 @@ class AStarSolver:
             self.steps += 1
             
             # Mostramos información
-            print(f"Paso {self.steps}: Moviendo a {next_pos}")
-            self.maze.print_maze()
+            #print(f"Paso {self.steps}: Moviendo a {next_pos}")
+            #self.maze.print_maze()
             
             # Si llegamos a una salida
             if self.maze.is_exit(self.maze.get_agent_position()):
                 if self.maze.is_valid_exit(self.maze.get_agent_position()):
-                    print(f"¡Salida válida encontrada en {self.steps} pasos!")
+                    #print(f"¡Salida válida encontrada en {self.steps} pasos!")
                     return True
                 else:
                     # Añadir esta salida a la blacklist
                     exit_pos = self.maze.get_agent_position()
                     self.blacklisted_exits.add(exit_pos)
-                    print(f"¡Salida inválida encontrada en {exit_pos}! Añadiendo a blacklist.")
+                    #print(f"¡Salida inválida encontrada en {exit_pos}! Añadiendo a blacklist.")
                     # No salimos, continuamos buscando
             
     def _a_star_search(self) -> List[Tuple[int, int]]:
@@ -114,15 +114,3 @@ class AStarSolver:
         
             return best_path
 
-# Ejemplo de uso
-if __name__ == "__main__":
-    # Crear laberinto
-    maze = MutantMaze(size=20, wall_prob=0.3, mutation_prob=0.1, num_exits=3)
-    
-    print("Laberinto inicial:")
-    print(f"Salida válida: {maze.valid_exit}")
-    maze.print_maze()
-    
-    # Resolver
-    solver = AStarSolver(maze)
-    solver.solve()
