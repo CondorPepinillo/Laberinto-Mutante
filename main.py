@@ -4,7 +4,7 @@ from GeneticSolver import GeneticSolver
 import time
 
 # Ejemplo de uso
-size = 10
+size =20
 mutation_prob=0.1
 wall_prob=0.3
 num_exits=3
@@ -17,14 +17,14 @@ maze.print_maze()
 print("Algoritmo genetico")
 maze.print_maze()
 solver = GeneticSolver(maze)
-solver.solveMaze()
-print("Resultado\n")
-maze.print_maze()
+x, y = solver.solveMaze()
+print("Resultado:")
+y.print_maze()
 
 #Solucion Algotimos A*
 print("Algoritmo A*")
 maze.print_maze()
 solver = AStarSolver(maze)
 solver.solve()
-print("Resultado")
+print("Resultado:")
 maze.print_maze()
