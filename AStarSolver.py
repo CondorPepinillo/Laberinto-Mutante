@@ -3,7 +3,16 @@ from typing import List, Tuple, Dict, Optional
 from MutantMaze import MutantMaze
 
 class AStarSolver:
+    """Clase que implementa el algoritmo A* para resolver el laberinto mutante."""
+    
     def __init__(self, maze: MutantMaze):
+        """Inicializa el solver con el laberinto dado."""
+        """
+        param maze: Instancia de MutantMaze
+        param path: Lista de tuplas representando el camino desde el inicio hasta la posición actual
+        param steps: Contador de pasos tomados
+        param blacklisted_exits: Conjunto de salidas inválidas ya probadas
+        """
         self.maze = maze
         self.path = []
         self.steps = 0
@@ -71,6 +80,7 @@ class AStarSolver:
         best_path = None # Para inicializar
         best_length = float('inf') # Para inicializar, asi cualquier camino es mejor que este en un inicio
         
+        #iteramos sobre todas las salidas que no estan en la blacklist
         for goal in possible_exits:
             # Estructuras para el algoritmo
             open_set = []
